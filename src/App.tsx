@@ -1,6 +1,7 @@
 import './App.css';
 import { TezosToolkit } from "@taquito/taquito";
 import { BeaconWallet } from "@taquito/beacon-wallet";
+import { InMemorySigner } from '@taquito/signer';
 import {
   ColorMode,
   Network,
@@ -13,7 +14,7 @@ function App() {
   // Set the network (Mainnet is default)
   const network: Network = { type: NetworkType.GHOSTNET };
 
-  const Tezos = new TezosToolkit("https://mainnet-tezos.giganode.io");
+  const Tezos = new TezosToolkit("https://ghostnet.ecadinfra.com");
   const wallet = new BeaconWallet({
     name: "Beacon Docs",
     preferredNetwork: network.type,
@@ -82,11 +83,56 @@ function App() {
     await wallet.clearActiveAccount();
   }
 
+  const interactContract = async () => {
+
+    // more used for Back-End as private key cant change + risky
+
+    // Tezos.setProvider({ signer: await InMemorySigner.fromSecretKey('') });
+    // Tezos.contract
+    //   .at('KT1BJadpDyLCACMH7Tt9xtpx4dQZVKw9cDF7')
+    //   .then((contract) => {
+    //     const i = 7;
+
+    //     console.log(`Incrementing storage value by ${i}...`);
+    //     return contract.methods.increment(i).send();
+    //   })
+    //   .then((op) => {
+    //     console.log(`Waiting for ${op.hash} to be confirmed...`);
+    //     return op.confirmation(3).then(() => op.hash); // 3 = number of transactions to wait
+    //   })
+    //   .then((hash) => console.log(`Operation injected: https://ghost.tzstats.com/${hash}`))
+    //   .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
+
+    // wallet for frontend / contract for backend
+
+    Tezos.wallet
+      .at('KT1BJadpDyLCACMH7Tt9xtpx4dQZVKw9cDF7')
+      .then((contract) => {
+        const i = 7;
+
+        console.log(`Incrementing storage value by ${i}...`);
+        return contract.methods.increment(i).send();
+      })
+      .then((op) => {
+        console.log(`Waiting for ${op.opHash} to be confirmed...`);
+        return op.confirmation(3).then(() => op.opHash); // 3 = number of transactions to wait
+      })
+      .then((hash) => console.log(`Operation injected: https://ghost.tzstats.com/${hash}`))
+      .catch((error) => console.log(`Error: ${JSON.stringify(error, null, 2)}`));
+  }
+
   return (
     <div className="App">
-      <button onClick={walletButton} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-8">
-         Connect Wallet
-      </button>
+      <div>
+        <button onClick={walletButton} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-8">
+          Connect Wallet
+        </button>
+      </div>
+      <div>
+        <button onClick={interactContract} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-8">
+          Interact Contract
+        </button>
+      </div>
     </div>
   );
 }
